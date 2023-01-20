@@ -84,6 +84,37 @@ function EditProjectPage() {
     new Audio(url).play();
   };
 
+  // TODO: move this to an AudioPlayer class
+  const playRecordings = (urls: string[]) => {
+    console.log("playing: "+ urls);
+    if (urls.length == 0) {
+      return;
+    } else {
+      var audio = new Audio(urls[0]);
+      audio.play();
+      audio.onended = () => playRecordings(urls.slice(1));
+      // new Audio(urls[0]).play().then(() => playRecordings(urls.slice(1)));
+    }
+  };
+
+
+  const playRandomRecordings = (recordings: {[entityType: string]: string[]}) => {
+    var recordingsToPlay = []
+    for (let entityType in recordings) {
+      let urls = recordings[entityType];
+      recordingsToPlay.push(pickRandom(urls));
+    }
+    playRecordings(recordingsToPlay);
+  }
+  
+  function pickRandom<Type>(arr:Type[]): Type {
+    const r = Math.random();
+    const l = arr.length;
+    const i = Math.floor(r * l);
+    console.log(`Pick random index: ${i} r:${r} l: ${l}`);
+    return arr[i];
+  }
+
   const onAddNewEntityType = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log("Adding new entity type: " + newEntityType);
@@ -101,7 +132,7 @@ function EditProjectPage() {
         </Container>
       </Navbar>
       <div>
-        <Button variant="primary">Play</Button>
+        <Button variant="primary" onClick={() => playRandomRecordings(recordings)}>Play</Button>
         <Button variant="primary">Share</Button>
       </div>
 
