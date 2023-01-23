@@ -2,9 +2,21 @@ import { useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Navbar from "react-bootstrap/Navbar";
+import { storage } from "../firebaseConfig.js";
+import {
+  uploadBytes,
+  ref,
+  listAll,
+  getMetadata,
+  getDownloadURL,
+} from "firebase/storage";
+import firebase from "firebase/app";
 
 const MicRecorder = require("mic-recorder-to-mp3");
 const recorder = new MicRecorder({ bitRate: 128 });
+const projectToken = "projectToken";
+const serverProjectRepo = `testAudios/${projectToken}`;
+
 // const recordings: { [entityType: string]: string[] } = {
 //   Subject: ["Recording1", "Recording2"],
 //   Situation: ["Recording1", "Recording2", "Recording3"],
@@ -33,8 +45,70 @@ function EditProjectPage() {
         setIsBlocked(true);
       }
     );
+
+    syncServerData().then(() => console.log("server data set"));
   }, []);
 
+
+  async function syncServerData() {
+    console.log("Syncing server data...");
+
+    const entityTypesRef = ref(storage, `${serverProjectRepo}`);
+    var serverEntityTypes: string[] = [];
+    await listAll(entityTypesRef)
+    .then((res) => {
+      serverEntityTypes = res.prefixes.map(ref => ref.name);
+      setEntityTypes(serverEntityTypes);
+    });
+
+    // await syncServerAudiosForEntity("Situation");
+    serverEntityTypes.forEach((entityType) => {
+      syncServerAudiosForEntity(entityType);
+    });
+
+    
+  }
+
+  async function syncServerAudiosForEntity(entityType: string) {
+    // entityTypes.forEach((entityType) => {
+      // List of audios under the project for a subjectType
+      const listRef = ref(storage, `${serverProjectRepo}/${entityType}`);
+      listAll(listRef)
+        .then((res) => {
+          res.items.forEach((fileRef) => {
+            // TODO: add visibility & more concurrency management here
+            getMetadata(fileRef)
+              .then((metadata) => {
+                console.log(`metadata=${metadata.name}`);
+              })
+              .catch((e) => {
+                console.error("Error loading metadata", e);
+              });
+            getDownloadURL(fileRef).then((url) => {
+              const existingUrlsForEntity =
+                entityType in recordings ? recordings[entityType] : [];
+              console.log(
+                `Syncing url=${url} to state where existing urls for ${entityType} is ${existingUrlsForEntity}`
+              );
+
+              if (!existingUrlsForEntity.includes(url)) {
+                var newState = recordings;
+                newState[entityType] = [...existingUrlsForEntity, url];
+                setRecordings(newState);
+
+                console.log(`newState = ${recordings.toString()}`);
+              }
+            });
+          });
+        })
+        .catch((e) => {
+          console.error(
+            `Error listing all the audios the project repo subjectType=${entityType}`,
+            e
+          );
+        });
+  // });
+  }
   const startRecording = () => {
     if (isBlocked) {
       console.log("Permission Denied");
@@ -66,9 +140,67 @@ function EditProjectPage() {
         setBlobUrl(url);
         setIsRecording(false);
         addRecording(entityType, url);
+        uploadAudio(entityType, url)
       })
       .catch((e: Error) => console.log(e));
   };
+
+
+  async function uploadAudio(entityType:string , url:string) {
+    console.log(`uploading audio url=${url}`);
+    try {
+      const audioBlob: Blob = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = () => {
+          console.log(`successfullly read the audioBlob ${xhr.response}`);
+          resolve(xhr.response);
+        };
+        xhr.onerror = (e) => {
+          console.log(e);
+          reject("fail to read the audioBlob to upload");
+        };
+        xhr.responseType = "blob";
+        xhr.open("GET", url, true);
+        xhr.send(null);
+      });
+      if (audioBlob != null) {
+        const uriParts = url.split("/");
+        // const fileNameAndType = uriParts[uriParts.length - 1].split(".");
+        // const fileName = fileNameAndType[0];
+        // const fileType = fileNameAndType[1];
+
+        const fileName = uriParts[uriParts.length - 1];
+        const fileType = "mp3";
+        console.log(
+          `uploading recording ${fileName}.${fileType} to cloud storage`
+        );
+        // const fileName = uri.substring(0, fileType.length - 1);
+        const storageRef = ref(
+          storage,
+          `${serverProjectRepo}/${entityType}/${fileName}.${fileType}`
+        );
+        const metadata = {
+          contentType: `audio/${fileType}`,
+        };
+        uploadBytes(storageRef, audioBlob, metadata)
+          .then((snapshot) => {
+            console.log(
+              `uploaded recording ${fileName}.${fileType} to cloud storage`
+            );
+          })
+          .catch((e) => {
+            console.log(
+              `error uploading recording ${fileName}.${fileType} to cloud storage`,
+              e
+            );
+          });
+      } else {
+        console.log("The audioBlob to upload is empty");
+      }
+    } catch (e) {
+      console.log(`error with uploadAudio`, e);
+    }
+  }
 
   const addRecording = (entityType: string, url: string) => {
     var newRecordings = recordings;
