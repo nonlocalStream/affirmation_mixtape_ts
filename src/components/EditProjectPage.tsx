@@ -62,9 +62,10 @@ function EditProjectPage() {
     });
 
     // await syncServerAudiosForEntity("Situation");
-    serverEntityTypes.forEach((entityType) => {
+    return Promise.all(serverEntityTypes.map((entityType) => {
       syncServerAudiosForEntity(entityType);
-    });
+    })
+    );
 
     
   }
@@ -73,17 +74,17 @@ function EditProjectPage() {
     // entityTypes.forEach((entityType) => {
       // List of audios under the project for a subjectType
       const listRef = ref(storage, `${serverProjectRepo}/${entityType}`);
-      listAll(listRef)
+      return listAll(listRef)
         .then((res) => {
-          res.items.forEach((fileRef) => {
+          res.items.map((fileRef) => {
             // TODO: add visibility & more concurrency management here
-            getMetadata(fileRef)
-              .then((metadata) => {
-                console.log(`metadata=${metadata.name}`);
-              })
-              .catch((e) => {
-                console.error("Error loading metadata", e);
-              });
+            // getMetadata(fileRef)
+            //   .then((metadata) => {
+            //     console.log(`metadata=${metadata.name}`);
+            //   })
+            //   .catch((e) => {
+            //     console.error("Error loading metadata", e);
+            //   });
             getDownloadURL(fileRef).then((url) => {
               const existingUrlsForEntity =
                 entityType in recordings ? recordings[entityType] : [];
@@ -255,6 +256,7 @@ function EditProjectPage() {
     // setNewEntityType("");
 };
   
+console.log("Rendering...");
   return (
     <div className="App">
       {/* <header className="App-header">Project Name</header> */}
