@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Navbar from "react-bootstrap/Navbar";
 import { storage } from "../firebaseConfig.js";
+import ShareUrl from "./ShareUrl"
 import {
   uploadBytes,
   ref,
@@ -17,11 +18,15 @@ const recorder = new MicRecorder({ bitRate: 128 });
 const projectToken = "projectToken";
 const serverProjectRepo = `testAudios/${projectToken}`;
 
-// const recordings: { [entityType: string]: string[] } = {
-//   Subject: ["Recording1", "Recording2"],
-//   Situation: ["Recording1", "Recording2", "Recording3"],
-//   Encouragement: ["Recording1"],
-// };
+// TODO: use production firebase setting (need OATH)
+
+function printRecordings(map: {[entityType: string]: any}){
+  var result = "Map(";
+  for (const k in map) {
+    result += ` ${k} => ${map[k]},`
+  }
+  return result+")";
+}
 
 function EditProjectPage() {
   const [isRecording, setIsRecording] = useState(false);
@@ -33,6 +38,9 @@ function EditProjectPage() {
   const [recordings, setRecordings] = useState<{
     [entityType: string]: string[];
   }>({});
+
+  const [loadingDone, setLoadingDone] = useState(false);
+
 
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ audio: true }).then(
@@ -46,9 +54,12 @@ function EditProjectPage() {
       }
     );
 
-    syncServerData().then(() => console.log("server data set"));
+    syncServerData().then(() => {
+      // TODO: Investigate why is this necessary to get UI to re-render
+      setLoadingDone(true);
+      console.log(`finished downloading the data ${printRecordings(recordings)}`)
+    });
   }, []);
-
 
   async function syncServerData() {
     console.log("Syncing server data...");
@@ -62,52 +73,54 @@ function EditProjectPage() {
     });
 
     // await syncServerAudiosForEntity("Situation");
-    return Promise.all(serverEntityTypes.map((entityType) => {
-      syncServerAudiosForEntity(entityType);
-    })
-    );
-
+    return Promise.all(serverEntityTypes.map(entityType => syncServerAudiosForEntity(entityType)));
     
   }
 
   async function syncServerAudiosForEntity(entityType: string) {
-    // entityTypes.forEach((entityType) => {
-      // List of audios under the project for a subjectType
       const listRef = ref(storage, `${serverProjectRepo}/${entityType}`);
-      return listAll(listRef)
-        .then((res) => {
-          res.items.map((fileRef) => {
-            // TODO: add visibility & more concurrency management here
-            // getMetadata(fileRef)
-            //   .then((metadata) => {
-            //     console.log(`metadata=${metadata.name}`);
-            //   })
-            //   .catch((e) => {
-            //     console.error("Error loading metadata", e);
-            //   });
-            getDownloadURL(fileRef).then((url) => {
-              const existingUrlsForEntity =
-                entityType in recordings ? recordings[entityType] : [];
-              console.log(
-                `Syncing url=${url} to state where existing urls for ${entityType} is ${existingUrlsForEntity}`
-              );
-
-              if (!existingUrlsForEntity.includes(url)) {
-                var newState = recordings;
-                newState[entityType] = [...existingUrlsForEntity, url];
-                setRecordings(newState);
-
-                console.log(`newState = ${recordings.toString()}`);
-              }
-            });
-          });
-        })
-        .catch((e) => {
-          console.error(
-            `Error listing all the audios the project repo subjectType=${entityType}`,
-            e
+      var result = await listAll(listRef);
+      
+      return Promise.all(result.items.map(fileRef => getDownloadURL(fileRef))).then(
+        (urls: string[]) => {
+          const existingUrlsForEntity =
+          entityType in recordings ? recordings[entityType] : [];
+          console.log(
+            `Adding urls=${urls} to state where existing urls for ${entityType} is ${existingUrlsForEntity}`
           );
-        });
+
+          var newState = recordings;
+          newState[entityType] = Array.from(new Set(existingUrlsForEntity.concat(urls)));
+          setRecordings(newState);
+          console.log(`newState[${entityType}] = ${newState[entityType]}`);  
+
+        }
+      )
+
+      // return listAll(listRef)
+      //   .then((result) => {
+      //     Promise.all(result.items.map(fileRef => getDownloadURL(fileRef))).then(
+      //       (urls: string[]) => {
+      //         const existingUrlsForEntity =
+      //         entityType in recordings ? recordings[entityType] : [];
+      //         console.log(
+      //           `Adding urls=${urls} to state where existing urls for ${entityType} is ${existingUrlsForEntity}`
+      //         );
+
+      //         var newState = recordings;
+      //         newState[entityType] = Array.from(new Set(existingUrlsForEntity.concat(urls)));
+      //         setRecordings(newState);
+      //         console.log(`newState[${entityType}] = ${newState[entityType]}`);  
+  
+      //       }
+      //     )
+        // })
+        // .catch((e) => {
+        //   console.error(
+        //     `Error listing all the audios the project repo subjectType=${entityType}`,
+        //     e
+        //   );
+        // });
   // });
   }
   const startRecording = () => {
@@ -218,6 +231,8 @@ function EditProjectPage() {
   };
 
   // TODO: move this to an AudioPlayer class
+  // TODO: BUG if there's one entity type with no recordings, then random player will
+  // not play anything
   const playRecordings = (urls: string[]) => {
     console.log("playing: "+ urls);
     if (urls.length == 0) {
@@ -267,7 +282,7 @@ console.log("Rendering...");
       </Navbar>
       <div>
         <Button variant="primary" onClick={() => playRandomRecordings(recordings)}>Play</Button>
-        <Button variant="primary">Share</Button>
+        <ShareUrl/>
       </div>
 
       {/* <div>selected: {selectedEntityType}</div> */}
