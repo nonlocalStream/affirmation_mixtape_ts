@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/affirmation_mixtape_ts/static/css/main.4cc7a672.css",
+    "main.js": "/affirmation_mixtape_ts/static/js/main.7dbff0d9.js",
+    "static/js/787.adf0caa1.chunk.js": "/affirmation_mixtape_ts/static/js/787.adf0caa1.chunk.js",
+    "index.html": "/affirmation_mixtape_ts/index.html",
+    "main.4cc7a672.css.map": "/affirmation_mixtape_ts/static/css/main.4cc7a672.css.map",
+    "main.7dbff0d9.js.map": "/affirmation_mixtape_ts/static/js/main.7dbff0d9.js.map",
+    "787.adf0caa1.chunk.js.map": "/affirmation_mixtape_ts/static/js/787.adf0caa1.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.4cc7a672.css",
+    "static/js/main.7dbff0d9.js"
+  ]
+}
