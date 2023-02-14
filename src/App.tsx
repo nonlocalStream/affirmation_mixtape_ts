@@ -36,9 +36,9 @@ onAuthStateChanged(auth, (user) => {
     } else {
       return <>
       <h1>Encourage Your BB!!!</h1>
-      <h3><a href="/projects/nino_to_cq/edit">Nino's message to CQ</a></h3>
-      <h3><a href="/projects/cq_to_nino/edit">CQ's message to Nino</a></h3>
-      <h3><a href="/projects/projectToken/edit">Test</a></h3>
+      <h3><a href="projects/nino_to_cq/edit">Nino's message to CQ</a></h3>
+      <h3><a href="projects/cq_to_nino/edit">CQ's message to Nino</a></h3>
+      <h3><a href="projects/projectToken/edit">Test</a></h3>
       </>
     }
   } else {
