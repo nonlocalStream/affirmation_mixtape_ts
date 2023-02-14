@@ -3,19 +3,14 @@ import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Navbar from "react-bootstrap/Navbar";
 import { storage } from "../firebaseConfig.js";
-import ShareUrl from "./ShareUrl"
 import {
-  uploadBytes,
   ref,
   listAll,
-  getMetadata,
   getDownloadURL,
 } from "firebase/storage";
-import firebase from "firebase/app";
+import { getProjectToken, hardcodedOrder, ordered } from "./EditProjectPage";
 
-const MicRecorder = require("mic-recorder-to-mp3");
-const recorder = new MicRecorder({ bitRate: 128 });
-const projectToken = "projectToken";
+const projectToken = getProjectToken();
 const serverProjectRepo = `testAudios/${projectToken}`;
 
 // TODO: use production firebase setting (need OATH)
@@ -29,13 +24,14 @@ function printRecordings(map: {[entityType: string]: any}){
 }
 
 function ViewProject() {
-  const [entityTypes, setEntityTypes] = useState(["Subject", "Situation", "Encouragement"]);
+  const [entityTypes, setEntityTypes] = useState(["Start", "Subject", "Message", "Future"]);
   const [recordings, setRecordings] = useState<{
     [entityType: string]: string[];
   }>({});
   const [loadingDone, setLoadingDone] = useState(false);
 
   // TODO: refactor
+  // TODO: the order will be messed up here
   useEffect(() => {
 
     syncServerData().then(() => {
@@ -52,7 +48,8 @@ function ViewProject() {
     await listAll(entityTypesRef)
     .then((res) => {
       serverEntityTypes = res.prefixes.map(ref => ref.name);
-      setEntityTypes(serverEntityTypes);
+      setEntityTypes(ordered(serverEntityTypes, hardcodedOrder));
+      console.log(entityTypes);
     });
 
     // await syncServerAudiosForEntity("Situation");

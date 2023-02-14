@@ -8,15 +8,42 @@ import {
   uploadBytes,
   ref,
   listAll,
-  getMetadata,
   getDownloadURL,
 } from "firebase/storage";
 import firebase from "firebase/app";
 
 const MicRecorder = require("mic-recorder-to-mp3");
 const recorder = new MicRecorder({ bitRate: 128 });
-const projectToken = "projectToken";
+const projectToken = getProjectToken();
 const serverProjectRepo = `testAudios/${projectToken}`;
+export const hardcodedOrder = ["Start", "Subject", "Message", "Future"];
+
+export function getProjectToken() {
+  const parts = window.location.pathname.split('/');
+  for (let i=0; i<parts.length; i++) {
+    if (parts[i] == 'projects') {
+      return parts[i+1]
+    }
+  }
+  return "invalid"
+}
+
+export function ordered(entities: string[], hardcodedOrder: string[]){
+  var ans: string[] = [] 
+  hardcodedOrder.forEach(e => {
+    if (entities.includes(e) && !(ans.includes(e))) {
+      ans.push(e)
+    }
+  })
+
+  entities.forEach(e => {
+    if (!(ans.includes(e))) {
+      ans.push(e)
+    }
+  })
+  return ans
+}
+
 
 // TODO: use production firebase setting (need OATH)
 
@@ -28,11 +55,12 @@ function printRecordings(map: {[entityType: string]: any}){
   return result+")";
 }
 
+
 function EditProjectPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [blobUrl, setBlobUrl] = useState("");
   const [isBlocked, setIsBlocked] = useState(true);
-  const [entityTypes, setEntityTypes] = useState(["Subject", "Situation", "Encouragement"]);
+  const [entityTypes, setEntityTypes] = useState(["Start", "Subject", "Message", "Future"]);
   const [selectedEntityType, setSelectedEntityType] = useState(entityTypes[0]);
   const [newEntityType, setNewEntityType] = useState("");
   const [recordings, setRecordings] = useState<{
@@ -69,7 +97,7 @@ function EditProjectPage() {
     await listAll(entityTypesRef)
     .then((res) => {
       serverEntityTypes = res.prefixes.map(ref => ref.name);
-      setEntityTypes(serverEntityTypes);
+      setEntityTypes(ordered(serverEntityTypes, hardcodedOrder));
     });
 
     // await syncServerAudiosForEntity("Situation");
@@ -274,15 +302,14 @@ function EditProjectPage() {
 console.log("Rendering...");
   return (
     <div className="App">
-      {/* <header className="App-header">Project Name</header> */}
       <Navbar bg="light" expand="lg">
         <Container>
-          <Navbar.Brand href="#home">Project Name</Navbar.Brand>
+          <Navbar.Brand href="#home">{getProjectToken()}</Navbar.Brand>
         </Container>
       </Navbar>
       <div>
         <Button variant="primary" onClick={() => playRandomRecordings(recordings)}>Play</Button>
-        <ShareUrl/>
+        <ShareUrl projectToken={projectToken}/>
       </div>
 
       {/* <div>selected: {selectedEntityType}</div> */}

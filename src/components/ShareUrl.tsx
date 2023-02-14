@@ -2,17 +2,19 @@
 import Button from "react-bootstrap/Button";
 import { useEffect, useState } from "react";
 
-
-export default function ShareUrl() {
+interface MyProps {
+    projectToken: string
+}
+export default function ShareUrl({projectToken}: MyProps) {
     const [sharableUrl, setSharableUrl] = useState<string>("");
 
-    function getRandomString() {
-        return Math.random().toString(36).substring(2, 15);
-    }
+    // function getRandomString() {
+    //     return Math.random().toString(36).substring(2, 15);
+    // }
 
     function generateSharableUrl() {
         if (!sharableUrl) {
-        setSharableUrl(`/projects/${getRandomString()}/view`);
+        setSharableUrl(`/projects/${projectToken}/view`);
         }
     }
     return <>

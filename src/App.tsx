@@ -31,8 +31,16 @@ onAuthStateChanged(auth, (user) => {
   if (myUser !== null) {
     if (window.location.pathname.includes("view")) {
       return <ViewProject/>;
+    } else if (window.location.pathname.includes("edit")) {
+      return <EditProjectPage />; 
+    } else {
+      return <>
+      <h1>Encourage Your BB!!!</h1>
+      <h3><a href="/projects/nino_to_cq/edit">Nino's message to CQ</a></h3>
+      <h3><a href="/projects/cq_to_nino/edit">CQ's message to Nino</a></h3>
+      <h3><a href="/projects/projectToken/edit">Test</a></h3>
+      </>
     }
-    return <EditProjectPage />;   
   } else {
     // window.location.replace("/authenticate");
     return <AuthenticationPage/>
