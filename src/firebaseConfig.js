@@ -36,13 +36,13 @@ const app = initializeApp(firebaseConfig);
 // Pass your reCAPTCHA v3 site key (public key) to activate(). Make sure this
 // key is the counterpart to the secret key you set in the Firebase console.
 // TODO: add debug token https://firebase.google.com/docs/app-check/web/debug-provider?authuser=0&hl=en
-// export const appCheck = initializeAppCheck(app, {
-//   provider: new ReCaptchaV3Provider('6LdyExUkAAAAABzVNjVTnoOlxGYqy_vkm1pjNsr8'),
+export const appCheck = initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('6LdyExUkAAAAABzVNjVTnoOlxGYqy_vkm1pjNsr8'),
 
-//   // Optional argument. If true, the SDK automatically refreshes App Check
-//   // tokens as needed.
-//   isTokenAutoRefreshEnabled: true
-// });
+  // Optional argument. If true, the SDK automatically refreshes App Check
+  // tokens as needed.
+  isTokenAutoRefreshEnabled: true
+});
 
 // Initialize Cloud Storage and get a reference to the service
 // Used to upload media files (audio, video, images etc)
