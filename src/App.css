@@ -1,0 +1,14 @@
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+img {
+    max-width: 30%;
+    padding: 5px 5px;
+    object-fit: cover;
+}
+
+.full-row {
+    max-width: 90%;
+}
