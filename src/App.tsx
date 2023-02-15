@@ -19,13 +19,10 @@ onAuthStateChanged(auth, (user) => {
     setMyUser(user);
     // const uid = user.uid;
     // ...
-  } else {
-    // User is signed out
-    // ...
-  }
+  } 
 });
   // const user = auth.currentUser;
-  console.log(myUser);
+  // console.log(myUser);
   // TODO: use react router
   if (myUser !== null) {
     if (window.location.pathname.includes("view")) {
