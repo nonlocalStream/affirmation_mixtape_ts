@@ -1,4 +1,3 @@
-import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import {auth} from './firebaseConfig.js'
 import {onAuthStateChanged } from "firebase/auth";
