@@ -10,7 +10,6 @@ import {
   listAll,
   getDownloadURL,
 } from "firebase/storage";
-import firebase from "firebase/app";
 
 const MicRecorder = require("mic-recorder-to-mp3");
 const recorder = new MicRecorder({ bitRate: 128 });
@@ -21,7 +20,7 @@ export const hardcodedOrder = ["Start", "Subject", "Message", "Future"];
 export function getProjectToken() {
   const parts = window.location.pathname.split('/');
   for (let i=0; i<parts.length; i++) {
-    if (parts[i] == 'projects') {
+    if (parts[i] === 'projects') {
       return parts[i+1]
     }
   }
@@ -58,7 +57,6 @@ function printRecordings(map: {[entityType: string]: any}){
 
 function EditProjectPage() {
   const [isRecording, setIsRecording] = useState(false);
-  const [blobUrl, setBlobUrl] = useState("");
   const [isBlocked, setIsBlocked] = useState(true);
   const [entityTypes, setEntityTypes] = useState(["Start", "Subject", "Message", "Future"]);
   const [selectedEntityType, setSelectedEntityType] = useState(entityTypes[0]);
@@ -87,6 +85,7 @@ function EditProjectPage() {
       setLoadingDone(true);
       console.log(`finished downloading the data ${printRecordings(recordings)}`)
     });
+  // eslint-disable-next-line
   }, []);
 
   async function syncServerData() {
@@ -102,7 +101,6 @@ function EditProjectPage() {
 
     // await syncServerAudiosForEntity("Situation");
     return Promise.all(serverEntityTypes.map(entityType => syncServerAudiosForEntity(entityType)));
-    
   }
 
   async function syncServerAudiosForEntity(entityType: string) {
@@ -179,7 +177,6 @@ function EditProjectPage() {
       .getMp3()
       .then(([buffer, blob]: any) => {
         const url = URL.createObjectURL(blob);
-        setBlobUrl(url);
         setIsRecording(false);
         addRecording(entityType, url);
         uploadAudio(entityType, url)
@@ -263,7 +260,7 @@ function EditProjectPage() {
   // not play anything
   const playRecordings = (urls: string[]) => {
     console.log("playing: "+ urls);
-    if (urls.length == 0) {
+    if (urls.length === 0) {
       return;
     } else {
       var audio = new Audio(urls[0]);
@@ -313,6 +310,7 @@ console.log("Rendering...");
       </div>
 
       {/* <div>selected: {selectedEntityType}</div> */}
+      {(!loadingDone) && (<div className="loading"> Loading... </div>) }
       {entityTypes.map((type) => {
         return (
           <div key={`row-${type}`}>

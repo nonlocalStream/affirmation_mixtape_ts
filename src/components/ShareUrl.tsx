@@ -1,6 +1,6 @@
 
 import Button from "react-bootstrap/Button";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface MyProps {
     projectToken: string

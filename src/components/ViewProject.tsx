@@ -28,16 +28,15 @@ function ViewProject() {
   const [recordings, setRecordings] = useState<{
     [entityType: string]: string[];
   }>({});
-  const [loadingDone, setLoadingDone] = useState(false);
 
   // TODO: refactor
   // TODO: the order will be messed up here
   useEffect(() => {
 
     syncServerData().then(() => {
-      setLoadingDone(true);
       console.log(`finished downloading the data ${printRecordings(recordings)}`)
     });
+  // eslint-disable-next-line 
   }, []);
 
   async function syncServerData() {
@@ -78,14 +77,9 @@ function ViewProject() {
       )
 
   }
-
-  const playRecording = (url: string) => {
-    new Audio(url).play();
-  };
-
   const playRecordings = (urls: string[]) => {
     console.log("playing: "+ urls);
-    if (urls.length == 0) {
+    if (urls.length === 0) {
       return;
     } else {
       var audio = new Audio(urls[0]);
