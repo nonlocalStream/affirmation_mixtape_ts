@@ -1,6 +1,7 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import {auth} from './firebaseConfig.js'
 import {onAuthStateChanged } from "firebase/auth";
+import heart from "./assets/heart.gif"
 
 
 import EditProjectPage from "./components/EditProjectPage";
@@ -33,7 +34,9 @@ onAuthStateChanged(auth, (user) => {
       return <EditProjectPage />; 
     } else {
       return <>
-      <h1>Encourage Your BB!!!</h1>
+      
+      <img alt="heart" src={heart}/>
+      <h1>Happy Valentine's Day BB!!!</h1>
       <h3><a href="projects/nino_to_cq/edit">Nino's message to CQ</a></h3>
       <h3><a href="projects/cq_to_nino/edit">CQ's message to Nino</a></h3>
       <h3><a href="projects/projectToken/edit">Test</a></h3>

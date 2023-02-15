@@ -12,3 +12,12 @@ img {
 .full-row {
     max-width: 90%;
 }
+
+a {
+    color: pink;
+    
+}
+
+a:hover {
+    color: #f78187;
+}
